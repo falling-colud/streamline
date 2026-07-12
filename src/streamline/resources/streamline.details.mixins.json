@@ -1,0 +1,15 @@
+{
+    "required": false,
+    "minVersion": "0.8",
+    "package": "dev.streamline.details.mixin",
+    "compatibilityLevel": "JAVA_21",
+    "client": [
+        "LightTextureSteadyMixin",
+        "ClientLevelAmbienceMixin",
+        "GuiVignetteMixin",
+        "ItemRendererGlintMixin"
+    ],
+    "injectors": {
+        "defaultRequire": 0
+    }
+}

@@ -1,0 +1,87 @@
+modLoader = "javafml"
+loaderVersion = "[1,)"
+license = "MIT"
+issueTrackerURL = "https://github.com/leonraineri/make-it-compatible/issues"
+
+[[mods]]
+modId = "streamline"
+version = "${mod_version}"
+displayName = "Streamline"
+logoFile = "icon.png"
+logoBlur = false
+authors = "leon.raineri"
+description = '''Streamline raises FPS by controlling WHEN and HOW HARD the game renders - Sightline's companion, built to sit alongside Sodium and Iris:
+
+- FPS governor: frame caps for unfocused (15), minimized (3) and idle (30 after 5 min without input) window states. Frames nobody watches stop burning the GPU; any input or focus lifts the cap on the next frame, loading screens are never throttled, and multiplayer stays in sync (packets drain fully every tick).
+- Precise frame limiter (opt-in): vanilla's FPS cap wait overshoots by a millisecond or more, so capped gameplay has visible cadence wobble - wait-then-spin pacing lands frames within microseconds.
+- Adaptive VSync (opt-in): tear instead of stalling a whole refresh when a frame runs late (swap_control_tear, where the driver supports it).
+- Texture animation control: freeze animated sprites per category (water, lava, fire, portal, other) - each animated sprite re-uploads pixels to the GPU every animation frame; Sodium skips the off-screen ones, this can also stop the visible ones.
+- Steady lightmap: vanilla rebuilds + re-uploads the lightmap texture every tick just to animate torch flicker; pin the flicker and skip rebuilds whose inputs did not change. Night vision, darkness, gamma, storms and dimension effects still apply instantly.
+- Block ambience density: scale vanilla's 667-samples-per-tick ambient effects loop (torch flames, drips, crackles).
+- Particle physics fast path: particles surrounded by air skip vanilla's allocation-heavy block-collision machinery (bit-identical outcomes - a big deal in storms, where thousands of rain particles collide every tick).
+- HUD draw batching: vanilla flushes the GUI buffer after every single HUD element; batching per vanilla layer collapses dozens of flushes into a few. Modded HUD layers render exactly as before.
+- Fast F3: the debug columns rebuild at most 10x/second instead of every frame (vanilla does dozens of String.formats per frame while F3 is open).
+- Detail toggles: enchantment glint pass (enchanted crowds draw everything twice), vignette.
+- FPS meter: compact FPS / frame time / 1% low readout with the active governor cap.
+
+Culls nothing - what gets rendered is Sightline's job. All options live in Sodium's video settings (Reese's Sodium Options compatible); every hook is vanilla-targeted and composes with Sodium's, Iris's, Fovea's and Sightline's.'''
+
+# Vanilla-target mixins (always apply; every hook self-reports via the debug overlay). Split per feature so
+# each mixin config's package contains ONLY mixin classes - the mod's own classes live in the parent packages
+# (dev.streamline.frame, .textures, .details), which Mixin must not own or the @Mod class won't load.
+[[mixins]]
+config = "streamline.frame.mixins.json"
+
+[[mixins]]
+config = "streamline.textures.mixins.json"
+
+[[mixins]]
+config = "streamline.details.mixins.json"
+
+[[mixins]]
+config = "streamline.particles.mixins.json"
+
+[[mixins]]
+config = "streamline.hud.mixins.json"
+
+# --- Dependencies ---------------------------------------------------------------------------------
+
+[[dependencies.streamline]]
+modId = "neoforge"
+type = "required"
+versionRange = "[21.1,)"
+ordering = "NONE"
+side = "CLIENT"
+
+[[dependencies.streamline]]
+modId = "minecraft"
+type = "required"
+versionRange = "[1.21.1,1.22)"
+ordering = "NONE"
+side = "CLIENT"
+
+# Sodium is optional: when present, all options appear in Sodium's video settings (Reese's Sodium Options).
+# The texture animation gate composes with Sodium's "animate only visible textures" (both cancel at HEAD).
+[[dependencies.streamline]]
+modId = "sodium"
+type = "optional"
+versionRange = "[0.6,)"
+ordering = "AFTER"
+side = "CLIENT"
+
+# Iris is optional: the lightmap memo never skips a rebuild Iris's darkness-uniform capture needs (the
+# darkness effect varies the fingerprint every tick), and no hook touches the shader pipeline.
+[[dependencies.streamline]]
+modId = "iris"
+type = "optional"
+versionRange = "[1.8,)"
+ordering = "AFTER"
+side = "CLIENT"
+
+# Sightline is the culling half of the pair; both work alone, best together.
+[[dependencies.streamline]]
+modId = "sightline"
+type = "optional"
+versionRange = "[1.0,)"
+ordering = "NONE"
+side = "CLIENT"
